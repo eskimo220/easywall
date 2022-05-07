@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: anti-GFW server
+
+Parameters:
+  LightsailName:
+    Type: String
+    Default: t2.micro
+
+Resources:
+  Lightsail:
+    Type: AWS::Lightsail::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT10M # Specify the time here
+    Properties:
+      BlueprintId: amazon_linux_2
+      BundleId: nano_2_0
+      InstanceName:
+        Ref: LightsailName
+      AvailabilityZone: ap-northeast-1a
+      Networking:
+        Ports:
+          - FromPort: 443
+            ToPort: 443
+          - FromPort: 80
+            ToPort: 80
+          - FromPort: 22
+            ToPort: 22
+      UserData:
+        |
+          #!/bin/bash -ex
+          yum install -y git
+          amazon-linux-extras install -y ansible2
+          git clone https://github.com/eskimo220/create-lightsail
+          ansible-playbook ./create-lightsail/playbook.yml
+
+  LightsailIp:
+    Type: AWS::Lightsail::StaticIp
+    Properties:
+      AttachedTo:
+        Ref: Lightsail
+      StaticIpName: !Sub "${LightsailName}-ip"
+
+Outputs:
+  LightsailIp:
+    Description: LightsailIp
+    Value: !GetAtt LightsailIp.IpAddress
