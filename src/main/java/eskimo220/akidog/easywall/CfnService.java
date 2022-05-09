@@ -1,6 +1,5 @@
 package eskimo220.akidog.easywall;
 
-import org.springframework.data.domain.Example;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
@@ -12,16 +11,18 @@ import software.amazon.awssdk.services.lightsail.LightsailClient;
 @Service
 public class CfnService {
 
+    private final CloudFormationClient cloudFormationClient = CloudFormationClient.builder().region(Region.AP_NORTHEAST_1).build();
+
     @Async
     @Retryable(maxAttempts = 100, backoff = @Backoff(delay = 5000))
-    public void addDomainEntry(String stackName) {
+    public void addDomainEntry(String stackName, String domainName) {
 
         try {
-            Region region = Region.AP_NORTHEAST_1;
+            String ip = cloudFormationClient.describeStacks(o -> o.stackName(stackName)).stacks().get(0).outputs().get(0).outputValue();
 
-            String ip = CloudFormationClient.builder().region(region).build().describeStacks(o -> o.stackName(stackName)).stacks().get(0).outputs().get(0).outputValue();
-
-            LightsailClient.builder().region(Region.US_EAST_1).build().createDomainEntry(o -> o.domainName("eskimo.ga").domainEntry(entry -> entry.type("A").name(stackName + ".eskimo.ga").target(ip)));
+            String name = stackName + "." + domainName;
+            
+            LightsailClient.builder().region(Region.US_EAST_1).build().createDomainEntry(o -> o.domainName(domainName).domainEntry(entry -> entry.type("A").name(name).target(ip)));
 
         } catch (Exception e) {
             e.printStackTrace();

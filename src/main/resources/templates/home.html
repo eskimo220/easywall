@@ -7,7 +7,7 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-<h1></h1>
+<h1 th:text="${domain}"></h1>
 <table class="table table-dark">
     <thead>
     <tr>
@@ -19,7 +19,10 @@
     <tbody>
     <tr th:if="${!#lists.isEmpty(message)}" th:each="one : ${message}">
         <!--<td th:text="${one}"></td>-->
-        <td th:text="${one.stackName()}"></td>
+        <td>
+            <span th:text="${one.stackName()}"></span>
+            <a th:href="${one.stackName()}"></a>
+        </td>
         <td th:text="${one.stackStatus()}"></td>
         <td th:text="${one.creationTime()}"></td>
     </tr>

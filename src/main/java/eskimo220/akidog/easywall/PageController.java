@@ -2,10 +2,12 @@ package eskimo220.akidog.easywall;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
@@ -26,12 +28,16 @@ public class PageController {
     @Autowired
     private CfnService cfnService;
 
+    @ModelAttribute("domain")
+    @Cacheable("domain")
+    public String getDomainName() {
+        return LightsailClient.builder().region(Region.US_EAST_1).build().getDomains().domains().stream().map(Domain::name).findFirst().orElse("");
+    }
+
     @RequestMapping("/")
     public String home(Model model) {
 
         Region region = Region.AP_NORTHEAST_1;
-
-        System.out.println("region = " + LightsailClient.builder().region(Region.US_EAST_1).build().getDomains().domains());
 
         model.addAttribute("message", CloudFormationClient.builder().region(region).build().describeStacks().stacks()
                 .stream().filter(o -> o.tags().stream().anyMatch(tag -> "GFW".equals(tag.key()))).collect(Collectors.toList()));
@@ -45,21 +51,21 @@ public class PageController {
 
         Region region = Region.AP_NORTHEAST_1;
 
-        String id = "F" + IdGen.nextId();
+        String id = "f" + IdGen.nextId();
 
         String cfn2 = StreamUtils.copyToString(cfn.getInputStream(), Charset.defaultCharset());
 
         CreateStackRequest createStackRequest = CreateStackRequest.builder()
                 .stackName(id)
                 .templateBody(cfn2)
-                .parameters(o -> o.parameterKey("LightsailName").parameterValue(id).build())
+                .parameters(o -> o.parameterKey("LightsailName").parameterValue(id).build(), o -> o.parameterKey("DomainName").parameterValue(getDomainName()).build())
                 .tags(o -> o.key("GFW").value("GFW").build())
                 .build();
 
         String stackId = CloudFormationClient.builder().region(region).build().createStack(createStackRequest).stackId();
 
         // add domain entry
-        cfnService.addDomainEntry(id);
+        cfnService.addDomainEntry(id, getDomainName());
 
         model.addAttribute("message", stackId);
 
@@ -76,7 +82,7 @@ public class PageController {
 
         LightsailClient lightsailClient = LightsailClient.builder().region(Region.US_EAST_1).build();
 
-        Domain myDomain = lightsailClient.getDomain(o -> o.domainName("eskimo.ga")).domain();
+        Domain myDomain = lightsailClient.getDomain(o -> o.domainName(getDomainName())).domain();
 
         cloudFormationClient.describeStacks().stacks()
                 .stream()
@@ -84,7 +90,7 @@ public class PageController {
                 .forEach(o -> {
                     cloudFormationClient.deleteStack(v -> v.stackName(o.stackName()));
 
-                    myDomain.domainEntries().stream().filter(d -> (o.stackName() + ".eskimo.ga").toLowerCase().equals(d.name())).findFirst().ifPresent(d -> lightsailClient.deleteDomainEntry(domain -> domain.domainName("eskimo.ga").domainEntry(d)));
+                    myDomain.domainEntries().stream().filter(d -> (o.stackName() + ".eskimo.ga").toLowerCase().equals(d.name())).findFirst().ifPresent(d -> lightsailClient.deleteDomainEntry(domain -> domain.domainName(getDomainName()).domainEntry(d)));
                 });
 
 

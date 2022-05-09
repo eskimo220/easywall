@@ -4,14 +4,14 @@ Description: anti-GFW server
 Parameters:
   LightsailName:
     Type: String
-    Default: t2.micro
-
+  DomainName:
+    Type: String
 Resources:
   Lightsail:
     Type: AWS::Lightsail::Instance
-    CreationPolicy:
-      ResourceSignal:
-        Timeout: PT10M # Specify the time here
+#    CreationPolicy:
+#      ResourceSignal:
+#        Timeout: PT10M # Specify the time here
     Properties:
       BlueprintId: amazon_linux_2
       BundleId: nano_2_0
@@ -26,13 +26,81 @@ Resources:
             ToPort: 80
           - FromPort: 22
             ToPort: 22
-      UserData:
+      UserData: !Sub
         |
           #!/bin/bash -ex
-          yum install -y git
-          amazon-linux-extras install -y ansible2
-          git clone https://github.com/eskimo220/create-lightsail
-          ansible-playbook ./create-lightsail/playbook.yml
+
+          yum update -y
+
+          # 1. swap
+          curl -s https://gist.githubusercontent.com/eskimo220/d79791dbb7415f581f1288676f581689/raw/344a8f2ddbe3ecc9c66d20039d05b78b4dfeceec/swap.sh | bash
+          # 2. install nginx docker
+          amazon-linux-extras install -y nginx1 docker
+          systemctl enable nginx
+          systemctl start nginx
+          systemctl enable docker
+          systemctl start docker
+
+          docker run -d --restart=always -e "ARGS=--plugin v2ray-plugin --plugin-opts server;path=/rat; -u" -e METHOD=aes-256-gcm --name=shadowsocks-libev2022 -p 10000:8388/tcp acrisliu/shadowsocks-libev
+
+          # 3. bbr
+          bash -c "echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.conf"
+          bash -c "echo 'net.core.default_qdisc=fq' >> /etc/sysctl.conf"
+
+          # amazon-linux-extras install -y ansible2
+          # git clone https://github.com/eskimo220/create-lightsail
+          # ansible-playbook ./create-lightsail/playbook.yml
+
+          # 4. wait domain
+          echo http://${LightsailName}.${DomainName}
+          until $(curl --output /dev/null --silent --head --fail http://${LightsailName}.${DomainName}); do
+              printf '.'
+              sleep 5
+          done
+
+          sed -i.bak 's~<body[^>]*>~&<p>Domain is setted up!</p>~' /usr/share/nginx/html/index.html
+
+          # 4. use certbot to ssl
+          amazon-linux-extras install epel -y
+          yum install -y certbot python2-certbot-nginx
+
+          cat <<EOF >/etc/nginx/conf.d/${LightsailName}.${DomainName}.conf
+              server {
+                  listen       80;
+                  listen       [::]:80;
+                  server_name  ${LightsailName}.${DomainName};
+                  root         /usr/share/nginx/html;
+
+                  # Load configuration files for the default server block.
+                  include /etc/nginx/default.d/*.conf;
+
+                  location /rat {
+                      if ($!http_upgrade != "websocket") {
+                            return 404;
+                        }
+                      proxy_redirect off;
+                      proxy_pass http://127.0.0.1:10000;
+                      proxy_http_version 1.1;
+                      proxy_set_header Upgrade $!http_upgrade;
+                      proxy_set_header Connection "upgrade";
+                      proxy_set_header Host $!host;
+                      proxy_set_header X-Real-IP $!remote_addr;
+                      proxy_set_header X-Forwarded-For $!proxy_add_x_forwarded_for;
+                  }
+
+                  error_page 404 /404.html;
+                  location = /404.html {
+                  }
+
+                  error_page 500 502 503 504 /50x.html;
+                  location = /50x.html {
+                  }
+              }
+          EOF
+
+          # sed -i 's/server_name  _/server_name  ${LightsailName}.${DomainName}/' /etc/nginx/nginx.conf
+          certbot run -n --nginx --agree-tos -d ${LightsailName}.${DomainName} -m mygmailid@gmail.com --redirect
+          bash -c 'echo "30 0 * * * root certbot renew" >> /etc/crontab'
 
   LightsailIp:
     Type: AWS::Lightsail::StaticIp
