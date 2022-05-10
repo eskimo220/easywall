@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
@@ -50,7 +51,7 @@ public class PageController {
         return "home";
     }
 
-    @RequestMapping("/add")
+    @RequestMapping(value = "/", params = "add", method = RequestMethod.POST)
     public String add(Model model) throws IOException {
 
         Region region = Region.AP_NORTHEAST_1;
@@ -80,7 +81,7 @@ public class PageController {
         return "redirect:/";
     }
 
-    @RequestMapping("/delete-all")
+    @RequestMapping(value = "/", params = "delete-all", method = RequestMethod.POST)
     public String delete() throws IOException {
 
         Region region = Region.AP_NORTHEAST_1;

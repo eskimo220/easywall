@@ -8,30 +8,33 @@
 </head>
 <body>
 <h1 th:text="${domain}"></h1>
-<table class="table">
-    <thead>
-    <tr>
-        <th>StackName</th>
-        <th>StackStatus</th>
-        <th>CreationTime</th>
-        <th>link</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:if="${!#lists.isEmpty(message)}" th:each="one : ${message}">
-        <!--<td th:text="${one}"></td>-->
-        <td>
-            <span th:text="${one.stackName()}"></span>
-        </td>
-        <td th:text="${one.stackStatus()}"></td>
-        <td th:text="${one.creationTime()}"></td>
-        <td>
-            <a th:href="|http://${one.stackName()}.${domain}|" th:text="|http://${one.stackName()}.${domain}|">adsa</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
-<a class="btn btn-primary" href="/add">添加一个</a>
-<a class="btn btn-danger" href="/delete-all">删除所有</a>
+<form action="#" th:action="@{/}" method="post">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>StackName</th>
+            <th>StackStatus</th>
+            <th>CreationTime</th>
+            <th>link</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${!#lists.isEmpty(message)}" th:each="one : ${message}">
+            <!--<td th:text="${one}"></td>-->
+            <td>
+                <span th:text="${one.stackName()}"></span>
+            </td>
+            <td th:text="${one.stackStatus()}"></td>
+            <td th:text="${one.creationTime()}"></td>
+            <td>
+                <a th:href="|http://${one.stackName()}.${domain}|"
+                   th:text="|http://${one.stackName()}.${domain}|">adsa</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <input class="btn btn-primary" type="submit" name="add" value="添加一个"/>
+    <input class="btn btn-danger" type="submit" name="delete-all" value="删除所有"/>
+</form>
 </body>
 </html>

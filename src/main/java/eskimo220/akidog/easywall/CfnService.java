@@ -21,11 +21,13 @@ public class CfnService {
             String ip = cloudFormationClient.describeStacks(o -> o.stackName(stackName)).stacks().get(0).outputs().get(0).outputValue();
 
             String name = stackName + "." + domainName;
-            
+
             LightsailClient.builder().region(Region.US_EAST_1).build().createDomainEntry(o -> o.domainName(domainName).domainEntry(entry -> entry.type("A").name(name).target(ip)));
 
+            System.out.println("add domian entry OK");
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            System.out.println("add domian entry NG");
             throw e;
         }
     }
