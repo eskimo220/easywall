@@ -1,0 +1,24 @@
+{
+  "name": "easywall",
+  "description": "create a lightsail instance quickly.",
+  "repository": "https://github.com/eskimo220/easywall",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": [
+    "GFW"
+  ],
+  "addons": [
+    "papertrail",
+    "postgres"
+  ],
+  "env": {
+    "PW": {
+      "description": "pw."
+    },
+    "AWS_ACCESS_KEY_ID": {
+      "description": "AWS_ACCESS_KEY_ID."
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "AWS_SECRET_ACCESS_KEY."
+    }
+  }
+}
