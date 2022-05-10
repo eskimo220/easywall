@@ -8,12 +8,13 @@
 </head>
 <body>
 <h1 th:text="${domain}"></h1>
-<table class="table table-dark">
+<table class="table">
     <thead>
     <tr>
         <th>StackName</th>
         <th>StackStatus</th>
         <th>CreationTime</th>
+        <th>link</th>
     </tr>
     </thead>
     <tbody>
@@ -21,10 +22,12 @@
         <!--<td th:text="${one}"></td>-->
         <td>
             <span th:text="${one.stackName()}"></span>
-            <a th:href="${one.stackName()}"></a>
         </td>
         <td th:text="${one.stackStatus()}"></td>
         <td th:text="${one.creationTime()}"></td>
+        <td>
+            <a th:href="|http://${one.stackName()}.${domain}|" th:text="|http://${one.stackName()}.${domain}|">adsa</a>
+        </td>
     </tr>
     </tbody>
 </table>

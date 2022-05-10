@@ -25,6 +25,9 @@ public class PageController {
     @Value("classpath:cfn.yml")
     private Resource cfn;
 
+    @Value("${PW}")
+    private String password;
+
     @Autowired
     private CfnService cfnService;
 
@@ -39,6 +42,8 @@ public class PageController {
 
         Region region = Region.AP_NORTHEAST_1;
 
+//        LightsailClient.builder().region(Region.US_EAST_1).build().getDomain(o -> o.domainName(getDomainName())).domain().domainEntries().forEach(System.out::println);
+
         model.addAttribute("message", CloudFormationClient.builder().region(region).build().describeStacks().stacks()
                 .stream().filter(o -> o.tags().stream().anyMatch(tag -> "GFW".equals(tag.key()))).collect(Collectors.toList()));
 
@@ -48,17 +53,20 @@ public class PageController {
     @RequestMapping("/add")
     public String add(Model model) throws IOException {
 
-
         Region region = Region.AP_NORTHEAST_1;
 
-        String id = "f" + IdGen.nextId();
+        String id = "f" + IdGen.nextId2();
 
         String cfn2 = StreamUtils.copyToString(cfn.getInputStream(), Charset.defaultCharset());
 
         CreateStackRequest createStackRequest = CreateStackRequest.builder()
                 .stackName(id)
                 .templateBody(cfn2)
-                .parameters(o -> o.parameterKey("LightsailName").parameterValue(id).build(), o -> o.parameterKey("DomainName").parameterValue(getDomainName()).build())
+                .parameters(
+                        o -> o.parameterKey("LightsailName").parameterValue(id),
+                        o -> o.parameterKey("DomainName").parameterValue(getDomainName()),
+                        o -> o.parameterKey("Password").parameterValue(password)
+                )
                 .tags(o -> o.key("GFW").value("GFW").build())
                 .build();
 
@@ -75,7 +83,6 @@ public class PageController {
     @RequestMapping("/delete-all")
     public String delete() throws IOException {
 
-
         Region region = Region.AP_NORTHEAST_1;
 
         CloudFormationClient cloudFormationClient = CloudFormationClient.builder().region(region).build();
@@ -90,7 +97,7 @@ public class PageController {
                 .forEach(o -> {
                     cloudFormationClient.deleteStack(v -> v.stackName(o.stackName()));
 
-                    myDomain.domainEntries().stream().filter(d -> (o.stackName() + ".eskimo.ga").toLowerCase().equals(d.name())).findFirst().ifPresent(d -> lightsailClient.deleteDomainEntry(domain -> domain.domainName(getDomainName()).domainEntry(d)));
+                    myDomain.domainEntries().stream().filter(d -> (o.stackName() + "." + getDomainName()).toLowerCase().equals(d.name())).findFirst().ifPresent(d -> lightsailClient.deleteDomainEntry(domain -> domain.domainName(getDomainName()).domainEntry(d)));
                 });
 
 

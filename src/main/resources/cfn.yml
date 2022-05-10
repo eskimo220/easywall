@@ -6,6 +6,8 @@ Parameters:
     Type: String
   DomainName:
     Type: String
+  Password:
+    Type: String
 Resources:
   Lightsail:
     Type: AWS::Lightsail::Instance
@@ -41,8 +43,6 @@ Resources:
           systemctl enable docker
           systemctl start docker
 
-          docker run -d --restart=always -e "ARGS=--plugin v2ray-plugin --plugin-opts server;path=/rat; -u" -e METHOD=aes-256-gcm --name=shadowsocks-libev2022 -p 10000:8388/tcp acrisliu/shadowsocks-libev
-
           # 3. bbr
           bash -c "echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.conf"
           bash -c "echo 'net.core.default_qdisc=fq' >> /etc/sysctl.conf"
@@ -59,6 +59,8 @@ Resources:
           done
 
           sed -i.bak 's~<body[^>]*>~&<p>Domain is setted up!</p>~' /usr/share/nginx/html/index.html
+
+          docker run -d --restart=always -e "ARGS=--plugin v2ray-plugin --plugin-opts server;path=/rat; -u" -e METHOD=aes-256-gcm -e PASSWORD=${Password} --name=shadowsocks-libev2022 -p 10000:8388/tcp acrisliu/shadowsocks-libev
 
           # 4. use certbot to ssl
           amazon-linux-extras install epel -y
