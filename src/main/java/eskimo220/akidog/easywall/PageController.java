@@ -1,5 +1,6 @@
 package eskimo220.akidog.easywall;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,10 +22,14 @@ import java.nio.charset.Charset;
 import java.util.stream.Collectors;
 
 @Controller
+@Slf4j
 public class PageController {
 
     @Value("classpath:cfn.yml")
     private Resource cfn;
+
+    @Value("classpath:cfn2.yml")
+    private Resource cfnWithoutUserData;
 
     @Value("${PW}")
     private String password;
@@ -52,13 +57,17 @@ public class PageController {
     }
 
     @RequestMapping(value = "/", params = "add", method = RequestMethod.POST)
-    public String add(Model model) throws IOException {
+    public String add(Form form, Model model) throws IOException {
+
+        log.info(form.toString());
 
         Region region = Region.AP_NORTHEAST_1;
 
-        String id = "f" + IdGen.nextId2();
+        String id = IdGen.nextId2();
 
-        String cfn2 = StreamUtils.copyToString(cfn.getInputStream(), Charset.defaultCharset());
+        Resource resource = !"1".equals(form.getUserdata()) ? cfn : cfnWithoutUserData;
+
+        String cfn2 = StreamUtils.copyToString(resource.getInputStream(), Charset.defaultCharset());
 
         CreateStackRequest createStackRequest = CreateStackRequest.builder()
                 .stackName(id)
