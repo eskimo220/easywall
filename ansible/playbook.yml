@@ -1,16 +1,48 @@
 ---
 - hosts: all
   become: yes
+  user: ec2-user
 
   tasks:
+    # swap
+    - name: create the file to be used for swap
+      command: fallocate -l 1G /swapfile
+    - name: format the file for swap
+      command: mkswap /swapfile
+    - name: change swap file permissions
+      file: path=/swapfile owner=root group=root mode=0600
+    - name: add the file to the system as a swap file
+      command: swapon /swapfile
+    - name: write swap entry in /etc/fstab
+      mount: name=swap src=/swapfile fstype=swap opts=defaults passno=0 dump=0 state=present
+
     - name: yum update
       yum: 
         name: '*'
         state: latest
     
-    - name: install nginx
+    - name: install nginx...
       shell: |
-        amazon-linux-extras install -y nginx1
+        amazon-linux-extras install -y nginx1 docker epel
 
     - name: Enable nginx
       service: name=nginx state=started enabled=yes
+
+    - name: Enable docker
+      service: name=docker state=started enabled=yes
+
+    - name: ensure bbr is enabled
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+      with_items:
+        - {name: "net.core.default_qdisc", value: "fq"}
+        - {name: "net.ipv4.tcp_congestion_control", value: "bbr"}
+
+    - name: ensure a list of packages installed
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - certbot
+          - python2-certbot-nginx

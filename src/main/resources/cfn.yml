@@ -48,10 +48,6 @@ Resources:
           bash -c "echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.conf"
           bash -c "echo 'net.core.default_qdisc=fq' >> /etc/sysctl.conf"
 
-          # amazon-linux-extras install -y ansible2
-          # git clone https://github.com/eskimo220/create-lightsail
-          # ansible-playbook ./create-lightsail/playbook.yml
-
           # 4. wait domain
           echo http://${LightsailName}.${DomainName}
           until $(curl --output /dev/null --silent --head --fail http://${LightsailName}.${DomainName}); do
