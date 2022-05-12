@@ -1,2 +1,2 @@
-cat $PEM > /app/ansible/kaifa.pem
+echo "$PEM" > /app/ansible/kaifa.pem
 chmod 400 /app/ansible/kaifa.pem
