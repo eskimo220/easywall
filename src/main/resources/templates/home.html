@@ -14,6 +14,7 @@
         <tr>
             <th>StackName</th>
             <th>StackStatus</th>
+            <th>mode</th>
             <th>CreationTime</th>
             <th>link</th>
         </tr>
@@ -25,6 +26,7 @@
                 <span th:text="${one.stackName()}"></span>
             </td>
             <td th:text="${one.stackStatus()}"></td>
+            <td th:text="${#strings.substring(one.stackName(), 1, 2) == '1' ? 'no userdata':'use userdata'}"></td>
             <td th:text="${one.creationTime()}"></td>
             <td>
                 <a th:href="|http://${one.stackName()}.${domain}|"
@@ -43,8 +45,8 @@
             <label class="custom-control-label" for="option2">use userdata</label>
         </div>
     </div>
-    <input class="btn btn-primary" type="submit" name="add" value="添加一个"/>
-    <input class="btn btn-danger" type="submit" name="delete-all" value="删除所有"/>
+    <input class="btn btn-primary" type="submit" name="add" value="add one"/>
+    <input class="btn btn-danger" type="submit" name="delete-all" value="delete all"/>
 </form>
 </body>
 </html>

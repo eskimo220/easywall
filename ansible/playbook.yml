@@ -12,9 +12,5 @@
       shell: |
         amazon-linux-extras install -y nginx1
 
-
     - name: Enable nginx
-      ansible.builtin.systemd:
-        name: nginx
-        state: started
-        enabled: yes
+      service: name=nginx state=started enabled=yes

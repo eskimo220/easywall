@@ -32,6 +32,6 @@ public class IdGen {
     }
 
     public static String nextId2() {
-        return "f" + new RandomString(3).nextString().toLowerCase();
+        return new RandomString(4).nextString().toLowerCase();
     }
 }

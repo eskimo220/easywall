@@ -20,6 +20,7 @@ Resources:
       InstanceName:
         Ref: LightsailName
       AvailabilityZone: ap-northeast-1a
+      KeyPairName: kaifa
       Networking:
         Ports:
           - FromPort: 443

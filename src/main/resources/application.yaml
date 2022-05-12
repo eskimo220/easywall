@@ -12,3 +12,7 @@ server:
   compression:
     enabled: true
   port: ${PORT:8080}
+
+
+ansible:
+  path: ${ANSIBLE_PATH:/app/ansible}

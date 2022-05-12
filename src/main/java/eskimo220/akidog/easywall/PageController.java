@@ -57,13 +57,13 @@ public class PageController {
     }
 
     @RequestMapping(value = "/", params = "add", method = RequestMethod.POST)
-    public String add(Form form, Model model) throws IOException {
+    public String add(Form form, Model model) throws IOException, InterruptedException {
 
         log.info(form.toString());
 
         Region region = Region.AP_NORTHEAST_1;
 
-        String id = IdGen.nextId2();
+        String id = "f" + form.getUserdata() + IdGen.nextId2();
 
         Resource resource = !"1".equals(form.getUserdata()) ? cfn : cfnWithoutUserData;
 
