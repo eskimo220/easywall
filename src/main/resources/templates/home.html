@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
@@ -48,5 +49,19 @@
     <input class="btn btn-primary" type="submit" name="add" value="add one"/>
     <input class="btn btn-danger" type="submit" name="delete-all" value="delete all"/>
 </form>
+<div id="list" style="max-height: 300px;overflow: auto;"></div>
+<script>
+    const evtSource = new EventSource("/logs");
+    evtSource.onmessage = function() {
+        console.log(event.data);
+        const newElement = document.createElement("div");
+        const eventList = document.getElementById("list");
+
+        newElement.textContent = event.data;
+        eventList.appendChild(newElement);
+        eventList.scrollTop = eventList.scrollHeight;
+    }
+
+</script>
 </body>
 </html>

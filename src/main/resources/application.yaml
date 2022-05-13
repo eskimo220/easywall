@@ -5,8 +5,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   security:
     user:
-      password: ${ADMIN_PW:}
       name: ${ADMIN:admin}
+      password: ${ADMIN_PW:}
 
 server:
 #  servlet:

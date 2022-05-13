@@ -5,12 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
@@ -36,6 +39,9 @@ public class PageController {
 
     @Autowired
     private CfnService cfnService;
+
+    @Autowired
+    LogsSseService sseService;
 
     @ModelAttribute("domain")
     @Cacheable("domain")
@@ -112,5 +118,10 @@ public class PageController {
 
 
         return "redirect:/";
+    }
+
+    @GetMapping(path = "/logs", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamSseMvc() {
+        return sseService.newSseEmitter();
     }
 }
