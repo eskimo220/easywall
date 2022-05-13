@@ -3,6 +3,10 @@ spring:
   datasource:
     url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:55432/postgres?user=postgres&password=123456}
     driver-class-name: org.postgresql.Driver
+  security:
+    user:
+      password: ${ADMIN_PW:}
+      name: ${ADMIN:admin}
 
 server:
 #  servlet:
@@ -13,6 +17,15 @@ server:
     enabled: true
   port: ${PORT:8080}
 
-
+#profiles:
 ansible:
   path: ${ANSIBLE_PATH:/app/ansible}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+logging:
+  file:
+    path: log
