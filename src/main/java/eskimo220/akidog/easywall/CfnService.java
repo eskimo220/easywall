@@ -21,6 +21,9 @@ import java.nio.charset.Charset;
 @Slf4j
 public class CfnService {
 
+    @Value("${PW}")
+    private String pw;
+
     @Value("${ansible.path}")
     private String ansiblePath;
 
@@ -48,7 +51,7 @@ public class CfnService {
             log.info("add domian entry OK");
 
             if (stackName.charAt(1) == '1') {
-                runAnsible(ip);
+                runAnsible(ip, stackName);
             }
 
         } catch (Exception e) {
@@ -59,9 +62,9 @@ public class CfnService {
         }
     }
 
-    private void runAnsible(String ip) throws IOException, InterruptedException {
+    private void runAnsible(String ip, String name) throws IOException, InterruptedException {
 //        -i 54.250.144.215, --private-key ~/Downloads/kaifa.pem -u ec2-user playbook.yml
-        ProcessBuilder p = new ProcessBuilder("ansible-playbook", "-i", ip + ",", "--private-key", "kaifa.pem", "-u", "ec2-user", "--ssh-common-args='-o StrictHostKeyChecking=no'", "playbook.yml");
+        ProcessBuilder p = new ProcessBuilder("ansible-playbook", "-i", ip + ",", "--private-key", "kaifa.pem", "-u", "ec2-user", "--ssh-common-args='-o StrictHostKeyChecking=no'", "-e", "LightsailName=" + name, "-e", "DomainName=eskimo.ga", "-e", "Password=" + pw, "playbook.yml");
 
         p.directory(new File(ansiblePath));
 

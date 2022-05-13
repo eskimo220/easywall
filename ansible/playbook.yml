@@ -46,3 +46,23 @@
         packages:
           - certbot
           - python2-certbot-nginx
+
+    - name: create nginx config
+      template:
+        src: nginx-config.j2
+        dest: /etc/nginx/conf.d/{{LightsailName}}.{{DomainName}}.conf
+
+    - name: ssl
+      shell: |
+        certbot run -n --nginx --agree-tos -d {{LightsailName}}.{{DomainName}} -m mygmailid@gmail.com --redirect
+
+    - name: docker run
+      shell: |
+        docker run -d --restart=always -e "ARGS=--plugin v2ray-plugin --plugin-opts server;path=/rat; -u" -e METHOD=aes-256-gcm -e PASSWORD={{Password}} --name=shadowsocks-libev2022 -p 10000:8388/tcp acrisliu/shadowsocks-libev
+
+    - name: certbot renew
+      cron:
+        name: "certbot renew"
+        minute: "0"
+        hour: "2"
+        job: "certbot renew"
