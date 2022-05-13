@@ -9,10 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
@@ -96,8 +93,10 @@ public class PageController {
         return "redirect:/";
     }
 
-    @RequestMapping(value = "/", params = "delete-all", method = RequestMethod.POST)
-    public String delete() throws IOException {
+    @RequestMapping(value = "/", params = "delete", method = RequestMethod.POST)
+    public String delete(@RequestParam(name = "delete") String delete) throws IOException {
+
+        log.info(delete);
 
         Region region = Region.AP_NORTHEAST_1;
 
@@ -111,9 +110,11 @@ public class PageController {
                 .stream()
                 .filter(o -> o.tags().stream().anyMatch(tag -> "GFW".equals(tag.key())))
                 .forEach(o -> {
-                    cloudFormationClient.deleteStack(v -> v.stackName(o.stackName()));
+                    if ("*".equals(delete) || delete.equals(o.stackName())) {
+                        cloudFormationClient.deleteStack(v -> v.stackName(o.stackName()));
+                        myDomain.domainEntries().stream().filter(d -> (o.stackName() + "." + getDomainName()).toLowerCase().equals(d.name())).findFirst().ifPresent(d -> lightsailClient.deleteDomainEntry(domain -> domain.domainName(getDomainName()).domainEntry(d)));
 
-                    myDomain.domainEntries().stream().filter(d -> (o.stackName() + "." + getDomainName()).toLowerCase().equals(d.name())).findFirst().ifPresent(d -> lightsailClient.deleteDomainEntry(domain -> domain.domainName(getDomainName()).domainEntry(d)));
+                    }
                 });
 
 
